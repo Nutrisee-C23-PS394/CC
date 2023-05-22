@@ -1,0 +1,1 @@
+Sebelum menjalankan secara lokal, silahkan instal package di directory project dengan "npm install" pada terminal kemudian ke folder config untuk melakukan beberapa configurasi
