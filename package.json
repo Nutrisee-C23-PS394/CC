@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@firebase/auth": "^0.23.2",
     "@google-cloud/storage": "^6.10.1",
     "@tensorflow/tfjs-node": "^4.6.0",
     "cookie-parser": "~1.4.4",
