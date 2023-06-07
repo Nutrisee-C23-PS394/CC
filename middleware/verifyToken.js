@@ -1,25 +1,22 @@
-const firebaseAuth = require('../config/firebase');
+const { admin } = require('../config/firebase');
 
 const verifyToken = async (req, res, next) => {
-  // const token = req.headers.authorization?.split(' ')[0];
-  const { token } = req.body;
+  // const token = req.headers.authorization?.split(' ')[1] || req.cookies.session;
+  const { session } = req.cookies.session;
+  // const expiresIn = 5 * 60 * 1000;
 
-  if (!token) {
-    try {
-      const decodedSession = await firebaseAuth.auth().verifySessionCookie();
-      req.uid = decodedSession.uid;
-    } catch (error) {
-      res.status(401).json({ error: 'Unauthorized' });
-    }
-    // return res.status(401).json({ error: 'Unauthorized' });
+  if (!session) {
+    return res.status(401).json({ message: 'Unauthorized' });
   }
 
   try {
-    const decodedToken = await firebaseAuth.auth().verifyIdToken(token);
-    req.uid = decodedToken.uid;
+    const decodedSession = await admin.auth().verifySessionCookie(session, true);
+
+    req.body.uid = decodedSession.uid;
+
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'Unauthorized', message: error });
   }
 };
 

@@ -11,5 +11,8 @@
             "printWidth": 120,
             "endOfLine": "auto"
         }]
+    },
+    "env": {
+        "commonjs": true
     }
 }
