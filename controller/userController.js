@@ -1,96 +1,50 @@
 /* eslint-disable camelcase */
 const { nanoid } = require('nanoid');
-// const fbAuth = require('@firebase/auth');
-const firebaseAuth = require('../config/firebase');
+const { getAuth } = require('@firebase/auth');
+const { admin } = require('../config/firebase');
 const db = require('../config/database');
 
 const uuid = nanoid(12);
+const fbAuth = getAuth();
 
-const signUp = async (req, res) => {
-  const { name, userEmail, userPassword } = req.body;
-  let signUpRes;
-  try {
-    signUpRes = await firebaseAuth.auth().createUser({
-      uid: uuid,
-      displayName: name,
-      email: userEmail,
-      password: userPassword,
-    });
-    const token = await firebaseAuth.auth().createCustomToken(signUpRes.uid);
-    const newQuery = `INSERT INTO users (uid, name, email) VALUES (?, ?, ?)`;
-    // const newQuery = `INSERT INTO users (uid, name, email, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())`;
-    const insertValue = [signUpRes.uid, name, userEmail];
-    await db.query(newQuery, insertValue);
-    // fbAuth.signInWithCustomToken();
-    res.setHeader('Authorization', `Bearer ${token}`);
-    // firebaseAuth.auth().
-    // const sessionCookie = await firebaseAuth.auth().createSessionCookie(token, { expiresIn: 60 * 60 * 24 * 14 });
-    // res.set('Set-Cookie', `session=${sessionCookie}; Path=/; HttpOnly; Secure; SameSite=None`);
-
-    res.status(200).json({ message: 'Login successful', userToken: token });
-    // res.status(201).redirect(307, '/api/login');
-    // .json({ status: '201', data: { uid: signUpRes.uid, Name: signUpRes.displayName } })
-    // .redirect(307, '/api/login');
-  } catch (error) {
-    if (error.code === 'auth/email-already-exists') {
-      res.status(409).json({ message: 'The email address is already exist' });
-    } else if (error.code === 'auth/invalid-password') {
-      res.status(400).json({ message: 'The password at least 6 characters.' });
-    } else {
-      await db.query('DELETE FROM users where uid = ?', signUpRes.uid);
-      await firebaseAuth.auth().deleteUser(signUpRes.uid);
-      res.status(500).json({ message: error.code });
-    }
-  }
-};
-
-const login = async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  const expiresIn = 60 * 60 * 24 * 14; // token berlaku untuk 2 minggu
-  try {
-    const sessionCookie = await firebaseAuth.auth().createSessionCookie(token, expiresIn); // Set cookie expiration time (e.g., 2 weeks)
-
-    res.set('Set-Cookie', `session=${sessionCookie}; Path=/; HttpOnly; Secure; SameSite=None`);
-
-    res.status(200).json({ message: 'Login successful' });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-  // res.status(200).json({ status: 200, message: 'request success' });
-};
-
-// mendapatkan userInfo
+// mendapatkan userInfo dan untuk parameter rekomendasi makanan
 const userInfo = async (req, res) => {
-  // const uid = req.uid;
   const { uid } = req.body;
-  // ui = user_info, a = allergy
+
+  let age;
   try {
     const getUserInfoQuery =
-      'SELECT height, weight, DATE_FORMAT(birth, "%Y-%m-%d") AS birth FROM user_info WHERE user_id = ?';
+      'SELECT height, weight, DATE_FORMAT(birth, "%Y-%m-%d") AS birth, gender FROM user_info WHERE user_id = ?';
     const getUserAllergyQuery =
       'SELECT a.* FROM user_allergy ua INNER JOIN allergy a ON ua.allergy_id = a.id WHERE ua.user_id = ?';
 
-    const [userInfoResult, userAllergyResult] = await Promise.all([
-      db.query(getUserInfoQuery, [uid]),
-      db.query(getUserAllergyQuery, [uid]),
-    ]);
+    const userInfoResult = await db.query(getUserInfoQuery, [uid]);
 
-    res.status(200).json({
-      userInfo: userInfoResult[0],
-      userAllergy: userAllergyResult,
-    });
+    if (userInfoResult.length === 0) {
+      res.status(404).send({ status: '404', message: 'User information not found' });
+    } else {
+      const userAllergyResult = await db.query(getUserAllergyQuery, [uid]);
+      const birthDate = new Date(userInfoResult[0].birth);
+      const today = new Date();
+      age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age -= 1;
+      }
+
+      res.status(200).send({
+        userInfo: { ...userInfoResult[0], userAge: age },
+        userAllergy: userAllergyResult,
+      });
+    }
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error });
+    res.status(500).send({ status: 'error', message: 'Something when wrong from server. please try again' });
   }
-  // res.json({ message: 'Access granted!', uid });
-  // await firebaseAuth.auth().verifyIdToken();
-  // const searchQuery =
-  // await db.query();
 };
 
 // menyimpan informasi user kedalam database
 const storeUser = async (req, res) => {
-  const { height, weight, birth, user_id, allergy_id, allergy_name } = req.body;
+  const { height, weight, birth, user_id, gender, allergy_id, allergy_name } = req.body;
 
   try {
     // Memulai transaksi
@@ -102,14 +56,16 @@ const storeUser = async (req, res) => {
 
     if (existingUserInfoResult.length > 0) {
       // jika ada, update
-      const updateUserInfoQuery = 'UPDATE user_info SET height = ?, weight = ?, birth = ? WHERE user_id = ?';
+      const updateUserInfoQuery =
+        'UPDATE user_info SET height = ?, weight = ?, birth = ?, gender = ? WHERE user_id = ?';
       // 'UPDATE user_info SET height = ?, weight = ?, birth = ?, updated_at = NOW() WHERE user_id = ?';
-      await db.query(updateUserInfoQuery, [height, weight, birth, user_id]);
+      await db.query(updateUserInfoQuery, [height, weight, birth, gender.toLowerCase(), user_id]);
     } else {
       // jika belum, tambahkan
-      const insertUserInfoQuery = 'INSERT INTO user_info (uid, height, weight, birth, user_id) VALUES (?, ?, ?, ?, ?)';
+      const insertUserInfoQuery =
+        'INSERT INTO user_info (uid, height, weight, birth, gender, user_id) VALUES (?, ?, ?, ?, ?, ?)';
       // 'INSERT INTO user_info (uid, height, weight, birth, user_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())';
-      await db.query(insertUserInfoQuery, [uuid, height, weight, birth, user_id]);
+      await db.query(insertUserInfoQuery, [uuid, height, weight, birth, gender.toLowerCase(), user_id]);
     }
 
     // Hapus user_allergy record terlebih dahulu
@@ -164,7 +120,7 @@ const storeUser = async (req, res) => {
 
     // pengecekan kembali data pada user_info dan user_allergy
     const getUserInfoQuery =
-      'SELECT height, weight, DATE_FORMAT(birth, "%Y-%m-%d") AS birth FROM user_info WHERE user_id = ?';
+      'SELECT height, weight, DATE_FORMAT(birth, "%Y-%m-%d") AS birth, gender FROM user_info WHERE user_id = ?';
     const getUserAllergyQuery =
       'SELECT a.* FROM user_allergy ua INNER JOIN allergy a ON ua.allergy_id = a.id WHERE ua.user_id = ?';
 
@@ -173,20 +129,41 @@ const storeUser = async (req, res) => {
       db.query(getUserAllergyQuery, [user_id]),
     ]);
 
-    res.status(200).json({
+    res.status(200).send({
       message: 'User info and user allergies added/updated successfully',
       userInfo: userInfoResult[0],
       userAllergy: userAllergyResult,
     });
   } catch (err) {
     await db.rollback();
-    res.status(500).json({ message: 'Something went wrong. Please try again!', error: err });
+    res.status(500).send({ message: 'Something when wrong. please try again' });
   }
 };
 
-// const testHeaders = async (req, res) => {
-//   const token = req.headers.authorization?.split(' ')[1];
-//   res.status(200).json({ message: 'Request success', userToken: token });
-// }
+const testHeaders = async (req, res) => {
+  const { uid, userCred } = req.body;
+  try {
+    const tokenTemp = await fbAuth.currentUser.getIdToken();
+    const sessionCookie = await admin.auth().createSessionCookie(tokenTemp, { expiresIn: 5 * 60 * 1000 });
 
-module.exports = { signUp, login, userInfo, storeUser };
+    res.set('Set-Cookie', `session=${sessionCookie}; Path=/; HttpOnly; Secure; SameSite=Strict`);
+    res.status(200).send({ message: 'Request success', userid: uid, userInfo: userCred, tokenUser: tokenTemp });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const testSession = async (req, res) => {
+  const { uid, user, decoded } = req.body;
+  try {
+    const tokenTemp = await fbAuth.currentUser.getIdToken();
+
+    res
+      .status(200)
+      .json({ message: 'Request success', userid: uid, userInfo: user, userToken: tokenTemp, userDecoded: decoded });
+  } catch (error) {
+    res.json({ message: error });
+  }
+};
+
+module.exports = { userInfo, storeUser, testHeaders, testSession };

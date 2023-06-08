@@ -16,7 +16,7 @@
 
 
 -- Dumping database structure for nutrisee
-CREATE DATABASE IF NOT EXISTS `nutrisee` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE IF NOT EXISTS `nutrisee` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `nutrisee`;
 
 -- Dumping structure for table nutrisee.allergy
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `allergy` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
 
@@ -40,20 +40,20 @@ CREATE TABLE IF NOT EXISTS `food_records` (
   PRIMARY KEY (`uid`),
   FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`)
   -- KEY `user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table nutrisee.users
 CREATE TABLE IF NOT EXISTS `users` (
-  `uid` char(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '',
+  `uid` char(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT NOW(),
   `updated_at` timestamp NOT NULL DEFAULT NOW() ON UPDATE now(),
   PRIMARY KEY (`uid`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
 
@@ -67,23 +67,22 @@ CREATE TABLE IF NOT EXISTS `user_allergy` (
   FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`)
   -- KEY `user_id` (`user_id`),
   -- KEY `allergy_id` (`allergy_id`,`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table nutrisee.user_info
 CREATE TABLE IF NOT EXISTS `user_info` (
-  `uid` varchar(12) NOT NULL DEFAULT '',
-  `height` float NOT NULL DEFAULT (0),
-  `weight` float NOT NULL DEFAULT (0),
+  `uid` varchar(12) NOT NULL,
+  `height` float NOT NULL,
+  `weight` float NOT NULL,
   `birth` date NOT NULL,
-  `user_id` varchar(12) NOT NULL DEFAULT '',
+  `user_id` varchar(12) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT NOW(),
   `updated_at` timestamp NOT NULL DEFAULT NOW() ON UPDATE now(),
   PRIMARY KEY (`uid`),
   FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`)
-  -- KEY `user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
 
