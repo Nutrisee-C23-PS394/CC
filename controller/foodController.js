@@ -6,14 +6,14 @@ const uuid = nanoid(12);
 const getHistoryFood = async (req, res) => {
   const { uid } = req.body;
   try {
-    const existingFoodHistoryUserQuery = 'SELECT * FROM food_records WHERE user_id = ?';
-    const existingFoodHistoryUserInfo = await db.query(existingFoodHistoryUserQuery, [uid]);
+    const foodHistoryUserQuery = 'SELECT * FROM food_records WHERE user_id = ?';
+    const foodHistoryUser = await db.query(foodHistoryUserQuery, [uid]);
 
-    if (existingFoodHistoryUserInfo.length === 0) {
-      res.status(404).send({ status: 'Not Found', message: 'User food history not found' });
-    }
+    res
+      .status(foodHistoryUser.length === 0 ? 404 : 200)
+      .send(foodHistoryUser.length === 0 ? { message: `You don't have any history food` } : { foodHistoryUser });
   } catch (error) {
-    res.status(500).send({ message: 'Something when wrong from server. please try again' });
+    res.status(500).send({ status: 'error', message: 'Something when wrong from server. please try again' });
   }
 };
 
@@ -24,7 +24,7 @@ const historyFood = async (req, res) => {
     const existingFoodHistoryUserInfo = await db.query(existingFoodHistoryUserQuery, [uid]);
 
     if (existingFoodHistoryUserInfo.length === 0) {
-      res.status(404).send({ status: 'Not Found', message: 'User food history not found' });
+      res.status(404).send({ status: 'Not Found', message: `You don't have any history food` });
     }
 
     if (existingFoodHistoryUserInfo.length > 0) {
@@ -42,22 +42,22 @@ const historyFood = async (req, res) => {
         dinner,
         uid,
       ]);
-      res.status(201).json({ status: 'insert food history success', foodHistory: insertFoodHistoryUserResult[0] });
+      res.status(201).send({ status: 'insert food history success', foodHistory: insertFoodHistoryUserResult[0] });
     }
   } catch (error) {
-    res.status(500).json({ message: error });
+    res.status(500).send({ status: 'error', message: 'Something when wrong from server. please try again' });
   }
 };
 
 // mendapatkan semua list alergi yang ada di database
-const alergi = async (req, res) => {
+const alergi = async (res) => {
   try {
     const result = await db.query('SELECT * FROM alergi');
     res
       .status(result.length === 0 ? 404 : 200)
       .send(result.length === 0 ? { message: 'Requested Data is Unavailable' } : { result });
   } catch (error) {
-    res.status(500).json({ status: 500, message: 'Something when wrong from server. Please try again' });
+    res.status(500).send({ status: 'error', message: 'Something when wrong from server. please try again' });
   }
 };
 
