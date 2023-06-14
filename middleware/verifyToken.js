@@ -6,7 +6,7 @@ const verifyToken = async (req, res, next) => {
   // const expiresIn = 5 * 60 * 1000;
 
   if (!session) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).send({ message: 'Unauthorized' });
   }
 
   try {
@@ -16,7 +16,7 @@ const verifyToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Unauthorized', message: error });
+    res.status(401).send({ error: 'Unauthorized', message: error });
   }
 };
 

@@ -28,6 +28,21 @@ CREATE TABLE IF NOT EXISTS `allergy` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table nutrisee.food
+CREATE TABLE IF NOT EXISTS `food` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `Kalori` float DEFAULT NULL,
+  `Protein` float DEFAULT NULL,
+  `Karbo` float DEFAULT NULL,
+  `Lemak` float DEFAULT NULL,
+  `Serat` float DEFAULT NULL,
+  `rate` float DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table nutrisee.food_records
 CREATE TABLE IF NOT EXISTS `food_records` (
   `uid` varchar(12) NOT NULL,
@@ -40,6 +55,18 @@ CREATE TABLE IF NOT EXISTS `food_records` (
   PRIMARY KEY (`uid`),
   FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`)
   -- KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table nutrisee.ingredient
+CREATE TABLE IF NOT EXISTS `ingredient` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `food_id` int DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `quantity` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`food_id`) REFERENCES `food` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
