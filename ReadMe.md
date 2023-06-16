@@ -36,8 +36,21 @@ To install and run the API locally, please follow these steps:
 
 The API provides the following endpoints:
 
-- **`/api/signup`**: Allows user to create new account. (Method: POST)
-- **`/api/login`**: Login or Sign in user (Method: POST)
+- **`/api/signup`**: Allows user to create new account. (Method: POST) Example request Body **`/api/signup`**
+```
+{
+    "name": "blahblahblah",
+    "userEmail": "blahblahblah@asd.com",
+    "userPassword": "password"
+}
+ ```
+- **`/api/login`**: Login or Sign in user (Method: POST) Example request Body **`/api/login`**
+```
+{
+    "userEmail": "blahblahblah@asd.com",
+    "userPassword": "password"
+}
+ ```
 - **`/api/logout`**: Revoke user in current session (Method: POST)
 - **`/api/profile`**: Get user information
 - **`/api/update`**: Insert or update user information (Method PUT)
