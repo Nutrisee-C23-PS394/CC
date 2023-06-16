@@ -1,9 +1,47 @@
-Sebelum menjalankan secara lokal, silahkan instal package di directory project dengan "npm install" pada terminal kemudian ke folder config untuk melakukan beberapa configurasi
 
-Khusus untuk API base_url/api/update
+# API - Nutrisee
 
-apabila request body seperti ini:
+This repository contains the source code and documentation for the API service Nutrisee APP.
 
+if you want try here the url :
+- ```https://backend-dot-nutrisee-c23-ps394.et.r.appspot.com/``` user API
+- ```https://ml-model-l7aquw2uhq-et.a.run.app/recommend ``` ML Model Endpoint
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Endpoints](#endpoints)
+
+## Installation
+
+To install and run the API locally, please follow these steps:
+
+1. Clone this repository to your local machine
+2. Install the required dependencies by running the following command: ```npm install --omit=dev ```
+3. Before running the API, please do configuration in the folder config : 
+```
+.
+├── ...
+├── config
+│   ├── cloud-storage.js    # Ignore this one
+│   ├── database.js         # Config Your Database           
+│   └── firebase.js         # Config Your firebase API Key and Service Account
+├── serviceAccountKey.json   # this is where your service Account or change directory location based on your directory
+└── ...
+```
+4. After do configuration, start the API server by running the following command: ```npm start```
+5. Last, also start the API server for ML Model by running the following command inside 'mlModels' directory: ```python```
+
+## Endpoints
+
+The API provides the following endpoints:
+
+- **`/api/signup`**: Allows user to create new account. (Method: POST)
+- **`/api/login`**: Login or Sign in user (Method: POST)
+- **`/api/logout`**: Revoke user in current session (Method: POST)
+- **`/api/profile`**: Get user information
+- **`/api/update`**: Insert or update user information (Method PUT)
+Example request Body **`/api/update`**
 ```
 {
     "height": 20,
@@ -11,28 +49,9 @@ apabila request body seperti ini:
     "birth": "2000-07-23",
     "user_id": "J5UTFCn9Eja4"
 }
-```
 
-nanti resultnya akan seperti ini
+or
 
-```
-{
-  "message": "User info and user allergies added/updated successfully",
-  "userInfo": {
-    "height": 20,
-    "weight": 21,
-    "birth": "2000-07-23"
-  },
-  "userAllergy": []
-}
-```
-![image](https://github.com/Nutrisee-C23-PS394/CC/assets/100499769/354050c6-48ea-4cd5-b42a-7ea1ea92b9ea)
-
-
-
-
-kemudian jika request seperti ini :
-```
 {
     "height": 20,
     "weight": 21,
@@ -48,32 +67,29 @@ kemudian jika request seperti ini :
       "name": "cat"
     }]
 }
-```
-dengan amsumsi pada table alergi sudah terdapat alergi bernama peanut dengan id = 1 dan untuk objek allergy_name untuk allergi yang belum ada di table allergi
-
-sehingga expect resultnya seperti ini:
+ ```
+- **`/api/allergy`**: Get list Allergy in database
+- **`/api/history`**: Insert, update or get user food history (Method: PUT)
+Example Request Body **`/api/history`** Method: PUT
 ```
 {
-  "message": "User info and user allergies added/updated successfully",
-  "userInfo": {
-    "height": 20,
-    "weight": 21,
-    "birth": "2000-07-23"
-  },
-  "userAllergy": [
-    {
-      "id": 1,
-      "name": "peanut"
-    },
-    {
-      "id": 4,
-      "name": "cat"
-    }
-  ]
+    "breakfast": "Bakso",
+    "lunch": null,
+    "dinner": null,
 }
+ ```
+- **`/recommend`**: To get recommendation food (Method : POST)
+Example Request Body **`/api/history`** Method: PUT
 ```
-pada result tersebut asumsi sudah ada 3 alergi dalam table allergy
+{
+  "weight": 80,
+  "height": 160,
+  "age": 21,
+  "gender": "female",
+  "allergies": ["Ayam", "Tauge"]
+}
+ ```
 
-![image](https://github.com/Nutrisee-C23-PS394/CC/assets/100499769/153f3978-9b61-42b0-9faf-3c3c64a9d73f)
-table pada allergy :
-![image](https://github.com/Nutrisee-C23-PS394/CC/assets/100499769/b2b3b597-0aad-488b-ba40-50bcc05e362b)
+ #### Note
+ - If you want try to use the deployed don't forget to set cookies session=[your Token] for every request except ```/recommend```, ```/allergy```, ```/signup``` and ```/login```
+
